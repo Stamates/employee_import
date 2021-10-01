@@ -1,6 +1,21 @@
 defmodule EmployeeImportTest do
   use ExUnit.Case
 
+  describe "verify_filter/1" do
+    test "succeeds when passed correct value" do
+      assert {:ok, "Both"} == EmployeeImport.verify_filter("Both")
+    end
+
+    test "capitalizes correct input" do
+      assert {:ok, "Email"} == EmployeeImport.verify_filter("emAIl")
+    end
+
+    test "returns error tuple if not a valid filter" do
+      assert {:error, "Filter must be on of email, phone, or both"} ==
+               EmployeeImport.verify_filter("not_valid")
+    end
+  end
+
   describe "convert_to_map_lists/1" do
     test "converts csv data into a map with header row keys" do
       assert {[

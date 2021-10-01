@@ -13,40 +13,45 @@ defmodule Mix.Tasks.Sanitize do
   def run([input_file, output_file, filter]) do
     Mix.Task.run("app.start")
 
-    {sanitized_data, errors} =
-      input_file
-      |> EmployeeImport.import()
-      |> EmployeeImport.convert_to_map_lists()
+    case EmployeeImport.verify_filter(filter) do
+      {:ok, filter_stratey} ->
+        {sanitized_data, errors} =
+          input_file
+          |> EmployeeImport.import()
+          |> EmployeeImport.convert_to_map_lists()
 
-    if sanitized_data != [] do
-      sanitized_data
-      |> EmployeeImport.remove_duplicates(String.capitalize(filter))
-      |> export_data(output_file)
+        maybe_export_data(sanitized_data, output_file, filter_stratey)
+        maybe_export_errors(errors)
+
+      {:error, error} ->
+        IO.puts(error)
     end
-
-    if errors != [], do: export_error_file(errors)
-    :ok
+  rescue
+    _ -> IO.puts("Input file not found")
   end
 
-  @spec export_data(list(), String.t()) :: :ok
-  def export_data(employee_data, output_file) do
+  def run(_args),
+    do: IO.puts("Call must match pattern mix sanitize <input_file> <output_file> <filter>")
+
+  @spec export_file(list(), String.t(), list()) :: :ok
+  def export_file(employee_data, output_file, headers) do
     output_file = File.open!("#{output_file}", [:write, :utf8])
 
     employee_data
-    |> CSV.encode(headers: ["FirstName", "LastName", "Email", "Phone"])
+    |> CSV.encode(headers: headers)
     |> Enum.each(&IO.write(output_file, &1))
 
     File.close(output_file)
   end
 
-  @spec export_error_file(list()) :: :ok
-  def export_error_file(errors) do
-    error_file = File.open!("import_errors.csv", [:write, :utf8])
+  defp maybe_export_data([], _output_file), do: :ok
 
-    errors
-    |> CSV.encode(headers: ["row", "error"])
-    |> Enum.each(&IO.write(error_file, &1))
-
-    File.close(error_file)
+  defp maybe_export_data(sanitized_data, output_file, filter) do
+    sanitized_data
+    |> EmployeeImport.remove_duplicates(filter)
+    |> export_file(output_file, ["FirstName", "LastName", "Email", "Phone"])
   end
+
+  defp maybe_export_errors([]), do: :ok
+  defp maybe_export_errors(errors), do: export_file(errors, "import_errors.csv", ["row", "error"])
 end

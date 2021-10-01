@@ -17,13 +17,47 @@ defmodule Mix.Tasks.SanitizeTest do
       assert output_file_data == expected_result
       assert :ok == File.rm("output.csv")
     end
+
+    test "provides message if input file not found" do
+      assert Sanitize.run(["./test/non_existent.csv", "output.csv", "both"]) ==
+               :ok
+    end
+
+    test "provides message if all args are not provided" do
+      assert Sanitize.run([]) == :ok
+    end
   end
 
-  describe "export_error_file/1" do
-    test "creates and error file" do
+  describe "export_file/1" do
+    test "creates an employee file" do
+      data = [
+        %{
+          "FirstName" => "Another",
+          "LastName" => "Person",
+          "Email" => "another_person@example.com",
+          "Phone" => "555-555-5551",
+          "order" => 1
+        }
+      ]
+
+      Sanitize.export_file(data, "output_file.csv", ["FirstName", "LastName", "Email", "Phone"])
+
+      file_data = EmployeeImport.import("output_file.csv")
+
+      expected_result = [
+        {:ok, ["FirstName", "LastName", "Email", "Phone"]},
+        {:ok, ["Another", "Person", "another_person@example.com", "555-555-5551"]}
+      ]
+
+      assert file_data == expected_result
+
+      assert :ok == File.rm("output_file.csv")
+    end
+
+    test "creates an error file" do
       errors = [%{"row" => "1", "error" => "Some error"}]
 
-      Sanitize.export_error_file(errors)
+      Sanitize.export_file(errors, "import_errors.csv", ["row", "error"])
 
       error_file_data = EmployeeImport.import("import_errors.csv")
 

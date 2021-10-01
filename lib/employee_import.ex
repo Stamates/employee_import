@@ -16,6 +16,18 @@ defmodule EmployeeImport do
   end
 
   @doc """
+    Verifies the filter strategy provided is acceptable and capitalizes it
+  """
+  @spec verify_filter(String.t()) :: {:ok, String.t()} | {:error, String.t()}
+  def verify_filter(filter) do
+    cap_filter = String.capitalize(filter)
+
+    if cap_filter in ["Email", "Phone", "Both"],
+      do: {:ok, cap_filter},
+      else: {:error, "Filter must be on of email, phone, or both"}
+  end
+
+  @doc """
     Converts CSV output to a list of maps with headers as keys.
   """
   @spec convert_to_map_lists(list(tuple())) :: {list(map()), list(map())}
