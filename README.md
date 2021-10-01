@@ -1,21 +1,13 @@
 # EmployeeImport
 
-**TODO: Add description**
+Imports an employee records CSV and outputs an employee records CSV with duplicate records removed based on the filter provided (email, phone, or both).
 
-## Installation
+## Running
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `employee_import` to your list of dependencies in `mix.exs`:
+1. Clone the repo. `git clone `
+2. `cd employee_import`
+3. `mix deps.get`
+4. `mix sanitize <input file> <output file> <filter>`
 
-```elixir
-def deps do
-  [
-    {:employee_import, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/employee_import](https://hexdocs.pm/employee_import).
+If there are any errors during import, you'll find them in an `import_errors.csv`
 
